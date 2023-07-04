@@ -19,21 +19,16 @@ import {
   VerificationSucceeded,
 } from '../../utils/ClientTrustUseCase';
 import {BackHandler} from 'react-native';
-import ReactNativeModal from 'react-native-modal';
 import {WalletProvider} from '../provider/WalletProvider';
 import ClientTrustProvider from '../provider/ClientTrustUseCaseProvider';
 import AuthorizeDappRequestScreen from './AuthorizeDappRequest';
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'flex-end',
     margin: 0,
-  },
-  bottomSheet: {
+    height: '100%',
+    width: '100%',
     backgroundColor: 'white',
-    padding: 16,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
   },
 });
 
@@ -47,7 +42,6 @@ const getRequestScreenComponent = (request: MWARequest | null | undefined) => {
 };
 
 const MWAComponent = () => {
-  const [visible, setVisible] = useState(true);
   const [currentRequest, setCurrentRequest] = useState<MWARequest | null>(null);
   const [currentSession, setCurrentSession] = useState<MWASessionEvent | null>(
     null,
@@ -58,7 +52,6 @@ const MWAComponent = () => {
   useEffect(() => {
     const initClientTrustUseCase = async () => {
       const url = await Linking.getInitialURL();
-      console.log('initial url: ' + url);
       let callingPackage: string | undefined = await getCallingPackage();
       let clientTrustUseCase = new ClientTrustUseCase(
         url ?? '',
@@ -70,6 +63,10 @@ const MWAComponent = () => {
 
     initClientTrustUseCase();
   }, []);
+
+  useEffect(() => {
+    console.log('request: ' + JSON.stringify(currentRequest));
+  }, [currentRequest]);
 
   const config: MobileWalletAdapterConfig = useMemo(() => {
     return {
@@ -84,7 +81,6 @@ const MWAComponent = () => {
   const endWalletSession = useCallback(() => {
     setTimeout(() => {
       console.log('Exit app');
-      setVisible(false);
       BackHandler.exitApp();
     }, 200);
   }, []);
@@ -149,20 +145,13 @@ const MWAComponent = () => {
     handleSessionEvent,
   );
   return (
-    <ReactNativeModal
-      style={styles.container}
-      isVisible={visible}
-      swipeDirection={['up', 'down']}
-      onSwipeComplete={() => endWalletSession()}
-      onBackdropPress={() => endWalletSession()}>
-      <WalletProvider>
-        <ClientTrustProvider clientTrustUseCase={clientTrustUseCase}>
-          <View style={styles.bottomSheet}>
-            {getRequestScreenComponent(currentRequest)}
-          </View>
-        </ClientTrustProvider>
-      </WalletProvider>
-    </ReactNativeModal>
+    <WalletProvider>
+      <ClientTrustProvider clientTrustUseCase={clientTrustUseCase}>
+        <View style={styles.container}>
+          {getRequestScreenComponent(currentRequest)}
+        </View>
+      </ClientTrustProvider>
+    </WalletProvider>
   );
 };
 

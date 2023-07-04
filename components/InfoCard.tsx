@@ -12,6 +12,7 @@ const styles = StyleSheet.create({
     margin: 8,
     borderRadius: 8,
     padding: 6,
+    width: '100%',
   },
   addressLabel: {
     backgroundColor: '#EDE7F6',
@@ -26,6 +27,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 4,
     margin: 4,
+    color: 'black',
   },
 });
 const InfoCard = ({label, value}: InfoCardProps) => {

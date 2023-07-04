@@ -32,29 +32,24 @@ export default function MWABottomsheetHeader({
   verificationState,
   children,
 }: MWABottomsheetHeaderProps) {
-  // const iconSource =
-  //   appIdentity?.iconRelativeUri && appIdentity.identityUri
-  //     ? {
-  //         uri: new URL(
-  //           appIdentity.iconRelativeUri,
-  //           appIdentity.identityUri,
-  //         ).toString(),
-  //       }
-  //     : require('../../img/unknownapp.jpg');
+  const iconSource =
+    appIdentity?.iconRelativeUri &&
+    appIdentity.identityUri &&
+    appIdentity.iconRelativeUri != 'null' &&
+    appIdentity.identityUri != 'null'
+      ? {
+          uri: new URL(
+            appIdentity.iconRelativeUri,
+            appIdentity.identityUri,
+          ).toString(),
+        }
+      : require('../../img/unknownapp.jpg');
 
-  // console.log('identity uri: ' + appIdentity?.identityUri);
-
-  let statusText = (
-    <Text style={styles.metadataText}>Status: Verification in progress </Text>
-  );
+  let statusText = <Text>Status: Verification in progress </Text>;
   if (verificationState instanceof VerificationSucceeded) {
-    statusText = (
-      <Text style={styles.metadataText}>Status: Verification Succeeded </Text>
-    );
+    statusText = <Text>Status: Verification Succeeded </Text>;
   } else if (verificationState instanceof VerificationFailed) {
-    statusText = (
-      <Text style={styles.metadataText}>Status: Verification Failed </Text>
-    );
+    statusText = <Text>Status: Verification Failed </Text>;
   }
 
   const verificationStatusText = function (): string {
@@ -66,37 +61,27 @@ export default function MWABottomsheetHeader({
   };
 
   return (
-    <>
-      {/* {iconSource ? (
+    <View>
+      {iconSource ? (
         <View style={styles.headerImage}>
           <Image source={iconSource} style={styles.icon} />
         </View>
-      ) : null} */}
-      <Text style={styles.header}>{title}</Text>
-      <Divider style={styles.spacer} />
-      <View style={styles.metadataSection}>
-        <Text style={styles.metadataHeader}>Request Metadata</Text>
-        <Text style={styles.metadataText}>Cluster: {cluster}</Text>
-        <Text style={styles.metadataText}>
-          App name: {appIdentity?.identityName}
-        </Text>
-        <Text style={styles.metadataText}>
-          App URI: {appIdentity?.identityUri}
-        </Text>
+      ) : null}
+      <Text>{title}</Text>
+      <Divider />
+      <View>
+        <Text>Request Metadata</Text>
+        <Text>Cluster: {cluster}</Text>
+        <Text>App name: {appIdentity?.identityName}</Text>
+        <Text>App URI: {appIdentity?.identityUri}</Text>
+        {verificationState && <Text>Status: {verificationStatusText()}</Text>}
         {verificationState && (
-          <Text style={styles.metadataText}>
-            Status: {verificationStatusText()}
-          </Text>
-        )}
-        {verificationState && (
-          <Text style={styles.metadataText}>
-            Scope: {verificationState?.authorizationScope}
-          </Text>
+          <Text>Scope: {verificationState?.authorizationScope}</Text>
         )}
       </View>
       <View>{children}</View>
-      <Divider style={styles.spacer} />
-    </>
+      <Divider />
+    </View>
   );
 }
 
@@ -117,7 +102,6 @@ const styles = StyleSheet.create({
   metadataSection: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#d3d3d3', // light gray background
     borderRadius: 8, // rounded corners
     padding: 10, // tight padding
     marginVertical: 10, // some vertical margin

@@ -83,7 +83,7 @@ export class ClientTrustUseCase {
   ): Promise<VerificationState> {
     switch (this.associationType) {
       case AssociationType.LocalFromBrowser:
-        if (clientIdentityUri != null) {
+        if (clientIdentityUri != null && clientIdentityUri != 'null') {
           //implement actual web based verification here
           await setTimeout(() => {}, 1500); //simulating web verification
           console.debug(
@@ -101,7 +101,7 @@ export class ClientTrustUseCase {
         }
 
       case AssociationType.LocalFromApp:
-        if (clientIdentityUri != null) {
+        if (clientIdentityUri != null && clientIdentityUri != 'null') {
           const verified = await verifyCallingPackage(clientIdentityUri);
           if (verified) {
             const uid = await getCallingPackageUid();
