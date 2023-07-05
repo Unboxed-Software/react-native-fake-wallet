@@ -6,8 +6,10 @@ import {
   MWARequestFailReason,
   MWARequestType,
   MWASessionEvent,
+  MWASessionEventType,
   MobileWalletAdapterConfig,
   ReauthorizeDappResponse,
+  SignAndSendTransactionsRequest,
   getCallingPackage,
   resolve,
   useMobileWalletAdapterSession,
@@ -22,6 +24,7 @@ import {BackHandler} from 'react-native';
 import {WalletProvider} from '../provider/WalletProvider';
 import ClientTrustProvider from '../provider/ClientTrustUseCaseProvider';
 import AuthorizeDappRequestScreen from './AuthorizeDappRequest';
+import SignAndSendTransaction from './SignAndSendTransaction';
 
 const styles = StyleSheet.create({
   container: {
@@ -37,6 +40,12 @@ const getRequestScreenComponent = (request: MWARequest | null | undefined) => {
     case MWARequestType.AuthorizeDappRequest:
       return (
         <AuthorizeDappRequestScreen request={request as AuthorizeDappRequest} />
+      );
+    case MWARequestType.SignAndSendTransactionsRequest:
+      return (
+        <SignAndSendTransaction
+          request={request as SignAndSendTransactionsRequest}
+        />
       );
   }
 };
@@ -67,6 +76,12 @@ const MWAComponent = () => {
   useEffect(() => {
     console.log('request: ' + JSON.stringify(currentRequest));
   }, [currentRequest]);
+
+  useEffect(() => {
+    if (currentSession?.__type == MWASessionEventType.SessionTerminatedEvent) {
+      BackHandler.exitApp();
+    }
+  }, [currentSession]);
 
   const config: MobileWalletAdapterConfig = useMemo(() => {
     return {
