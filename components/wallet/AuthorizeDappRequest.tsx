@@ -3,6 +3,8 @@ import {
   AuthorizeDappCompleteResponse,
   AuthorizeDappRequest,
   MWARequestFailReason,
+  MWARequestType,
+  SignAndSendTransactionsRequest,
   resolve,
 } from '../../lib/mobile-wallet-adapter-walletlib/src';
 import {useClientTrust} from '../provider/ClientTrustUseCaseProvider';
@@ -12,31 +14,21 @@ import {
   VerificationInProgress,
   VerificationState,
   VerificationSucceeded,
+  verificationStatusText,
 } from '../../utils/ClientTrustUseCase';
 import {useState, useEffect} from 'react';
 import {StyleSheet, View, Image, Text, Dimensions} from 'react-native';
-import {Button, Divider} from 'react-native-paper';
+import {Button} from 'react-native-paper';
 import {useWallet} from '../provider/WalletProvider';
+import Loader from '../Loader';
+import AppInfo from './AppInfo';
+import SignAndSendTransaction from './SignAndSendTransaction';
 
 interface AuthorizeDappResuestProps {
   request: AuthorizeDappRequest;
 }
 
 const styles = StyleSheet.create({
-  icon: {height: 75, width: 75, marginTop: 16},
-  header: {
-    width: Dimensions.get('window').width,
-    color: 'black',
-    textAlign: 'center',
-    fontSize: 24,
-    marginVertical: 16,
-  },
-  info: {color: 'black', textAlign: 'left'},
-  divider: {
-    marginVertical: 8,
-    width: Dimensions.get('window').width,
-    height: 1,
-  },
   root: {
     display: 'flex',
     width: Dimensions.get('window').width,
@@ -49,12 +41,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginVertical: 16,
   },
-  metadata: {
-    display: 'flex',
-    width: Dimensions.get('window').width,
-    alignItems: 'flex-start',
-    paddingHorizontal: 16,
-  },
 });
 
 const AuthorizeDappRequestScreen = ({request}: AuthorizeDappResuestProps) => {
@@ -63,6 +49,8 @@ const AuthorizeDappRequestScreen = ({request}: AuthorizeDappResuestProps) => {
   const [verificationState, setVerificationState] = useState<
     VerificationState | undefined
   >(undefined);
+
+  const [loading, setLoading] = useState(false);
 
   if (!wallet) {
     throw new Error('No wallet found');
@@ -81,25 +69,12 @@ const AuthorizeDappRequestScreen = ({request}: AuthorizeDappResuestProps) => {
         }
       : require('../../img/unknownapp.jpg');
 
-  const verificationStatusText = function (): string {
-    if (verificationState instanceof VerificationInProgress)
-      return 'Verification In Progress';
-    if (verificationState instanceof VerificationFailed)
-      return 'Verification Failed';
-    if (verificationState instanceof VerificationSucceeded)
-      return 'Verification Succeeded';
-    if (verificationState instanceof NotVerifiable) return 'Not Verifiable';
-    else return 'Verification in progress';
-  };
-
   useEffect(() => {
     const verifyClient = async () => {
-      console.log('Dapp screen: ' + JSON.stringify(request.appIdentity));
       const verificationState =
         await clientTrustUseCase?.verifyAuthorizationSource(
           request.appIdentity?.identityUri,
         );
-      console.log('Dapp screen: ' + JSON.stringify(verificationState));
       setVerificationState(verificationState);
     };
 
@@ -108,36 +83,23 @@ const AuthorizeDappRequestScreen = ({request}: AuthorizeDappResuestProps) => {
 
   return (
     <View style={styles.root}>
-      {iconSource ? (
-        <View>
-          <Image source={iconSource} style={styles.icon} />
-        </View>
-      ) : null}
-      <Text style={styles.header}>Authorize Dapp</Text>
-      <Divider style={styles.divider} />
-      <View style={styles.metadata}>
-        <Text style={{...styles.info, fontSize: 20}}>Request Metadata</Text>
-        <Text style={styles.info}>Cluster: {request.cluster}</Text>
-        <Text style={styles.info}>
-          App name: {request.appIdentity?.identityName}
-        </Text>
-        <Text style={styles.info}>
-          App URI: {request.appIdentity?.identityUri}
-        </Text>
-        {verificationState && (
-          <Text style={styles.info}>Status: {verificationStatusText()}</Text>
-        )}
-        {verificationState && (
-          <Text style={styles.info}>
-            Scope: {verificationState?.authorizationScope}
-          </Text>
-        )}
-      </View>
-      <Divider style={styles.divider} />
+      {loading && <Loader loadingText="Authorization in progress..." />}
+      <AppInfo
+        iconSource={iconSource}
+        title="Authorize Dapp"
+        appName={request.appIdentity?.identityName}
+        uri={request.appIdentity?.identityUri}
+        cluster={request.cluster}
+        verificationText={verificationStatusText(verificationState)}
+        scope={verificationState?.authorizationScope}
+        needDivider
+      />
+
       <View style={styles.buttonGroup}>
         <Button
           style={styles.button}
           onPress={() => {
+            setLoading(true);
             resolve(request, {
               publicKey: wallet.publicKey.toBytes(),
               accountLabel: 'Backpack',
@@ -145,6 +107,7 @@ const AuthorizeDappRequestScreen = ({request}: AuthorizeDappResuestProps) => {
                 verificationState?.authorizationScope,
               ),
             } as AuthorizeDappCompleteResponse);
+            setLoading(false);
           }}
           mode="contained">
           Authorize
@@ -152,7 +115,9 @@ const AuthorizeDappRequestScreen = ({request}: AuthorizeDappResuestProps) => {
         <Button
           style={styles.button}
           onPress={() => {
+            setLoading(true);
             resolve(request, {failReason: MWARequestFailReason.UserDeclined});
+            setLoading(false);
           }}
           mode="outlined">
           Decline

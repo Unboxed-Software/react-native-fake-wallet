@@ -2,6 +2,7 @@ import {StyleSheet, Text, View} from 'react-native';
 import {useWallet} from '../components/provider/WalletProvider';
 import {useEffect} from 'react';
 import InfoCard from '../components/InfoCard';
+import Loader from '../components/Loader';
 
 const styles = StyleSheet.create({
   container: {
@@ -14,9 +15,6 @@ const styles = StyleSheet.create({
 const MainScreen = () => {
   const {wallet} = useWallet();
 
-  useEffect(() => {
-    console.log('key: ' + wallet?.publicKey.toString());
-  }, []);
   return (
     <View style={styles.container}>
       <InfoCard

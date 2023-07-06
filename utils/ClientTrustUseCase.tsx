@@ -50,6 +50,19 @@ export type VerificationState =
   | VerificationFailed
   | NotVerifiable;
 
+export const verificationStatusText = function (
+  verificationState: VerificationState | undefined,
+): string {
+  if (verificationState instanceof VerificationInProgress)
+    return 'Verification In Progress';
+  if (verificationState instanceof VerificationFailed)
+    return 'Verification Failed';
+  if (verificationState instanceof VerificationSucceeded)
+    return 'Verification Succeeded';
+  if (verificationState instanceof NotVerifiable) return 'Not Verifiable';
+  else return 'Verification in progress';
+};
+
 export class ClientTrustUseCase {
   private static SCOPE_DELIMITER = ',';
 

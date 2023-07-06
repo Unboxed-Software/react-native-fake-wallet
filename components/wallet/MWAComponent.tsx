@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {Linking, StyleSheet, Text, View} from 'react-native';
+import {Linking, SafeAreaView, StyleSheet, View} from 'react-native';
 import {
   AuthorizeDappRequest,
   MWARequest,
@@ -25,6 +25,7 @@ import {WalletProvider} from '../provider/WalletProvider';
 import ClientTrustProvider from '../provider/ClientTrustUseCaseProvider';
 import AuthorizeDappRequestScreen from './AuthorizeDappRequest';
 import SignAndSendTransaction from './SignAndSendTransaction';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 const styles = StyleSheet.create({
   container: {
@@ -79,7 +80,7 @@ const MWAComponent = () => {
 
   useEffect(() => {
     if (currentSession?.__type == MWASessionEventType.SessionTerminatedEvent) {
-      BackHandler.exitApp();
+      endWalletSession();
     }
   }, [currentSession]);
 
@@ -95,7 +96,6 @@ const MWAComponent = () => {
 
   const endWalletSession = useCallback(() => {
     setTimeout(() => {
-      console.log('Exit app');
       BackHandler.exitApp();
     }, 200);
   }, []);
@@ -160,13 +160,17 @@ const MWAComponent = () => {
     handleSessionEvent,
   );
   return (
-    <WalletProvider>
-      <ClientTrustProvider clientTrustUseCase={clientTrustUseCase}>
-        <View style={styles.container}>
-          {getRequestScreenComponent(currentRequest)}
-        </View>
-      </ClientTrustProvider>
-    </WalletProvider>
+    <SafeAreaProvider>
+      <SafeAreaView>
+        <WalletProvider>
+          <ClientTrustProvider clientTrustUseCase={clientTrustUseCase}>
+            <View style={styles.container}>
+              {getRequestScreenComponent(currentRequest)}
+            </View>
+          </ClientTrustProvider>
+        </WalletProvider>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

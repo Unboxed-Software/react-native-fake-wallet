@@ -1,6 +1,7 @@
-import {useEffect, useState} from 'react';
+import {Dispatch, SetStateAction, useState, useEffect} from 'react';
 import {
   MWARequestFailReason,
+  MWARequestType,
   SignAndSendTransactionsRequest,
   resolve,
 } from '../../lib/mobile-wallet-adapter-walletlib/src';
@@ -8,11 +9,18 @@ import {useClientTrust} from '../provider/ClientTrustUseCaseProvider';
 import {useWallet} from '../provider/WalletProvider';
 import {Dimensions, StyleSheet, View} from 'react-native';
 import {Button, Divider, Text} from 'react-native-paper';
-import {Keypair} from '@solana/web3.js';
+import {Keypair, VersionedTransaction} from '@solana/web3.js';
 import SignUseCase from '../../utils/SignUseCase';
 import SendTranscationUseCase, {
   SendTransactionsError,
 } from '../../utils/SendUseCase';
+import AppInfo from './AppInfo';
+import Loader from '../Loader';
+import {
+  ClientTrustUseCase,
+  VerificationState,
+  verificationStatusText,
+} from '../../utils/ClientTrustUseCase';
 
 const styles = StyleSheet.create({
   icon: {height: 75, width: 75, marginTop: 16},
@@ -32,6 +40,7 @@ const styles = StyleSheet.create({
   root: {
     display: 'flex',
     width: Dimensions.get('window').width,
+    height: 'auto',
     alignItems: 'center',
   },
   button: {flex: 1, marginHorizontal: 8},
@@ -57,6 +66,7 @@ const styles = StyleSheet.create({
 const signAndSendTransaction = async (
   wallet: Keypair,
   request: SignAndSendTransactionsRequest,
+  onFinish: () => void,
 ) => {
   const valid = request.payloads.map(_ => true);
   let signedTsxs = request.payloads.map((payload, index) => {
@@ -83,6 +93,7 @@ const signAndSendTransaction = async (
       request.minContextSlot ? request.minContextSlot : undefined,
     );
     resolve(request, {signedTransactions: sigs});
+    onFinish();
   } catch (e) {
     console.log('Send error: ' + e);
     if (e instanceof SendTransactionsError) {
@@ -104,14 +115,37 @@ const SignAndSendTransaction = ({request}: SignAndSendTransactionProps) => {
   const {wallet} = useWallet();
   const {clientTrustUseCase} = useClientTrust();
   const [verified, setVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [verificationState, setVerificationState] = useState<
+    VerificationState | undefined
+  >(undefined);
 
   if (!wallet) {
     throw new Error('Wallet is null or undefined');
   }
 
+  const iconSource =
+    request.appIdentity?.iconRelativeUri &&
+    request.appIdentity.identityUri &&
+    request.appIdentity.iconRelativeUri != 'null' &&
+    request.appIdentity.identityUri != 'null'
+      ? {
+          uri: new URL(
+            request.appIdentity.iconRelativeUri,
+            request.appIdentity.identityUri,
+          ).toString(),
+        }
+      : require('../../img/unknownapp.jpg');
+
   useEffect(() => {
     const verifyClient = async () => {
       const authScope = new TextDecoder().decode(request.authorizationScope);
+      const verificationState =
+        await clientTrustUseCase?.verifyAuthorizationSource(
+          request.appIdentity?.identityUri,
+        );
+      setVerificationState(verificationState);
+
       const verified =
         (await clientTrustUseCase?.verifyPrivaledgedMethodSource(
           authScope,
@@ -132,7 +166,17 @@ const SignAndSendTransaction = ({request}: SignAndSendTransactionProps) => {
 
   return (
     <View style={styles.root}>
-      <Text style={styles.header}>Sign and Send Transaction</Text>
+      <AppInfo
+        iconSource={iconSource}
+        title="Authorize Dapp"
+        appName={request.appIdentity?.identityName}
+        uri={request.appIdentity?.identityUri}
+        cluster={request.cluster}
+        verificationText={verificationStatusText(verificationState)}
+        scope={verificationState?.authorizationScope}
+        needDivider
+      />
+      <Text style={styles.header}>Payloads</Text>
       <Text style={styles.content}>
         This request has {request.payloads.length}{' '}
         {request.payloads.length > 1 ? 'payloads' : 'payload'} to sign.
@@ -142,7 +186,12 @@ const SignAndSendTransaction = ({request}: SignAndSendTransactionProps) => {
         <Button
           style={styles.button}
           mode="contained"
-          onPress={() => signAndSendTransaction(wallet, request)}>
+          onPress={() => {
+            setLoading(true);
+            signAndSendTransaction(wallet as Keypair, request, () => {
+              setLoading(false);
+            });
+          }}>
           Sign and Send
         </Button>
         <Button
