@@ -5,23 +5,24 @@
  * @format
  */
 
-import React, {useEffect} from 'react';
-import type {PropsWithChildren} from 'react';
-import {Text, View} from 'react-native';
+import {SafeAreaView, Text, View} from 'react-native';
 import {WalletProvider} from './components/provider/WalletProvider';
 import MainScreen from './screens/MainScreen';
 import 'react-native-get-random-values';
+import Loader from './components/Loader';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 function App(): JSX.Element {
-  useEffect(() => {
-    console.log('in my fake wallet app component');
-  }, []);
   return (
-    <WalletProvider>
-      <View>
-        <MainScreen />
-      </View>
-    </WalletProvider>
+    <SafeAreaProvider>
+      <SafeAreaView>
+        <WalletProvider>
+          <View>
+            <MainScreen />
+          </View>
+        </WalletProvider>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
