@@ -75,10 +75,6 @@ const MWAComponent = () => {
   }, []);
 
   useEffect(() => {
-    console.log('request: ' + JSON.stringify(currentRequest));
-  }, [currentRequest]);
-
-  useEffect(() => {
     if (currentSession?.__type == MWASessionEventType.SessionTerminatedEvent) {
       endWalletSession();
     }
