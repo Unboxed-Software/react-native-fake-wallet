@@ -12,7 +12,6 @@ const styles = StyleSheet.create({
     margin: 8,
     borderRadius: 8,
     padding: 6,
-    width: '100%',
   },
   addressLabel: {
     backgroundColor: '#EDE7F6',

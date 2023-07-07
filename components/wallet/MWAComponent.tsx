@@ -72,6 +72,13 @@ const MWAComponent = () => {
     };
 
     initClientTrustUseCase();
+
+    BackHandler.addEventListener('hardwareBackPress', () => {
+      resolve(currentRequest as any, {
+        failReason: MWARequestFailReason.UserDeclined,
+      });
+      return false;
+    });
   }, []);
 
   useEffect(() => {
@@ -144,7 +151,9 @@ const MWAComponent = () => {
           console.log(
             'Timed out waiting for reauthorization source verification',
           );
-          resolve(request, {failReason: MWARequestFailReason.UserDeclined});
+          resolve(request, {
+            failReason: 'Timed out in verification',
+          });
         });
     }
   }, [currentRequest, endWalletSession]);
