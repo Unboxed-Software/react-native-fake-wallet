@@ -1,8 +1,6 @@
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {useWallet} from '../components/provider/WalletProvider';
-import {useEffect} from 'react';
 import InfoCard from '../components/InfoCard';
-import Loader from '../components/Loader';
 
 const styles = StyleSheet.create({
   container: {

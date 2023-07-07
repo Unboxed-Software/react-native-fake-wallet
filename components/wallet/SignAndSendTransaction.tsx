@@ -1,15 +1,14 @@
-import {Dispatch, SetStateAction, useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import {
   MWARequestFailReason,
-  MWARequestType,
   SignAndSendTransactionsRequest,
   resolve,
 } from '../../lib/mobile-wallet-adapter-walletlib/src';
 import {useClientTrust} from '../provider/ClientTrustUseCaseProvider';
 import {useWallet} from '../provider/WalletProvider';
 import {Dimensions, StyleSheet, View} from 'react-native';
-import {Button, Divider, Text} from 'react-native-paper';
-import {Keypair, VersionedTransaction} from '@solana/web3.js';
+import {Divider, Text} from 'react-native-paper';
+import {Keypair} from '@solana/web3.js';
 import SignUseCase from '../../utils/SignUseCase';
 import SendTranscationUseCase, {
   SendTransactionsError,
@@ -17,10 +16,11 @@ import SendTranscationUseCase, {
 import AppInfo from './AppInfo';
 import Loader from '../Loader';
 import {
-  ClientTrustUseCase,
   VerificationState,
   verificationStatusText,
 } from '../../utils/ClientTrustUseCase';
+import {getIconFromIdentityUri} from '../../utils/dapp';
+import ButtonGroup from './ButtonGroup';
 
 const styles = StyleSheet.create({
   icon: {height: 75, width: 75, marginTop: 16},
@@ -43,13 +43,7 @@ const styles = StyleSheet.create({
     height: 'auto',
     alignItems: 'center',
   },
-  button: {flex: 1, marginHorizontal: 8},
-  buttonGroup: {
-    width: Dimensions.get('window').width,
-    display: 'flex',
-    flexDirection: 'row',
-    marginVertical: 16,
-  },
+
   metadata: {
     display: 'flex',
     width: Dimensions.get('window').width,
@@ -124,19 +118,6 @@ const SignAndSendTransaction = ({request}: SignAndSendTransactionProps) => {
     throw new Error('Wallet is null or undefined');
   }
 
-  const iconSource =
-    request.appIdentity?.iconRelativeUri &&
-    request.appIdentity.identityUri &&
-    request.appIdentity.iconRelativeUri != 'null' &&
-    request.appIdentity.identityUri != 'null'
-      ? {
-          uri: new URL(
-            request.appIdentity.iconRelativeUri,
-            request.appIdentity.identityUri,
-          ).toString(),
-        }
-      : require('../../img/unknownapp.jpg');
-
   useEffect(() => {
     const verifyClient = async () => {
       const authScope = new TextDecoder().decode(request.authorizationScope);
@@ -166,8 +147,9 @@ const SignAndSendTransaction = ({request}: SignAndSendTransactionProps) => {
 
   return (
     <View style={styles.root}>
+      {loading && <Loader loadingText="Signing and sending..." />}
       <AppInfo
-        iconSource={iconSource}
+        iconSource={getIconFromIdentityUri(request.appIdentity)}
         title="Authorize Dapp"
         appName={request.appIdentity?.identityName}
         uri={request.appIdentity?.identityUri}
@@ -182,27 +164,19 @@ const SignAndSendTransaction = ({request}: SignAndSendTransactionProps) => {
         {request.payloads.length > 1 ? 'payloads' : 'payload'} to sign.
       </Text>
       <Divider style={styles.divider} />
-      <View style={styles.buttonGroup}>
-        <Button
-          style={styles.button}
-          mode="contained"
-          onPress={() => {
-            setLoading(true);
-            signAndSendTransaction(wallet as Keypair, request, () => {
-              setLoading(false);
-            });
-          }}>
-          Sign and Send
-        </Button>
-        <Button
-          style={styles.button}
-          onPress={() => {
-            resolve(request, {failReason: MWARequestFailReason.UserDeclined});
-          }}
-          mode="outlined">
-          Reject
-        </Button>
-      </View>
+      <ButtonGroup
+        positiveButtonText="Sign and Send"
+        negativeButtonText="Reject"
+        positiveOnClick={() => {
+          setLoading(true);
+          signAndSendTransaction(wallet as Keypair, request, () => {
+            setLoading(false);
+          });
+        }}
+        negativeOnClick={() => {
+          resolve(request, {failReason: MWARequestFailReason.UserDeclined});
+        }}
+      />
     </View>
   );
 };
