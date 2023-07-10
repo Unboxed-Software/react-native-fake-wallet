@@ -17,25 +17,11 @@ import Loader from '../Loader';
 import AppInfo from './AppInfo';
 import {getIconFromIdentityUri} from '../../utils/dapp';
 import ButtonGroup from './ButtonGroup';
+import styles from '../../utils/Styles';
 
 interface AuthorizeDappResuestProps {
   request: AuthorizeDappRequest;
 }
-
-const styles = StyleSheet.create({
-  root: {
-    display: 'flex',
-    width: Dimensions.get('window').width,
-    alignItems: 'center',
-  },
-  button: {flex: 1, marginHorizontal: 8},
-  buttonGroup: {
-    width: Dimensions.get('window').width,
-    display: 'flex',
-    flexDirection: 'row',
-    marginVertical: 16,
-  },
-});
 
 const AuthorizeDappRequestScreen = ({request}: AuthorizeDappResuestProps) => {
   const {wallet} = useWallet();
@@ -64,7 +50,6 @@ const AuthorizeDappRequestScreen = ({request}: AuthorizeDappResuestProps) => {
 
   return (
     <View style={styles.root}>
-      {loading && <Loader loadingText="Authorization in progress..." />}
       <AppInfo
         iconSource={getIconFromIdentityUri(request.appIdentity)}
         title="Authorize Dapp"
@@ -98,6 +83,7 @@ const AuthorizeDappRequestScreen = ({request}: AuthorizeDappResuestProps) => {
           setLoading(false);
         }}
       />
+      {loading && <Loader />}
     </View>
   );
 };
