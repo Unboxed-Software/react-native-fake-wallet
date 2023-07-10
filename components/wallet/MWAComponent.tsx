@@ -10,6 +10,8 @@ import {
   MobileWalletAdapterConfig,
   ReauthorizeDappResponse,
   SignAndSendTransactionsRequest,
+  SignMessagesRequest,
+  SignTransactionsRequest,
   getCallingPackage,
   resolve,
   useMobileWalletAdapterSession,
@@ -26,6 +28,7 @@ import ClientTrustProvider from '../provider/ClientTrustUseCaseProvider';
 import AuthorizeDappRequestScreen from './AuthorizeDappRequest';
 import SignAndSendTransaction from './SignAndSendTransaction';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import SignPayloads from './SignPayloads';
 
 const styles = StyleSheet.create({
   container: {
@@ -46,6 +49,13 @@ const getRequestScreenComponent = (request: MWARequest | null | undefined) => {
       return (
         <SignAndSendTransaction
           request={request as SignAndSendTransactionsRequest}
+        />
+      );
+    case MWARequestType.SignMessagesRequest:
+    case MWARequestType.SignTransactionsRequest:
+      return (
+        <SignPayloads
+          request={request as SignTransactionsRequest | SignMessagesRequest}
         />
       );
   }

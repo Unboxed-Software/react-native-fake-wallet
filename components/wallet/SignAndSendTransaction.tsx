@@ -19,59 +19,20 @@ import {
   VerificationState,
   verificationStatusText,
 } from '../../utils/ClientTrustUseCase';
-import {getIconFromIdentityUri} from '../../utils/dapp';
+import {getIconFromIdentityUri, getSignedPayloads} from '../../utils/dapp';
 import ButtonGroup from './ButtonGroup';
-
-const styles = StyleSheet.create({
-  icon: {height: 75, width: 75, marginTop: 16},
-  header: {
-    width: Dimensions.get('window').width,
-    color: 'black',
-    textAlign: 'center',
-    fontSize: 24,
-    marginVertical: 16,
-  },
-  info: {color: 'black', textAlign: 'left'},
-  divider: {
-    marginVertical: 8,
-    width: Dimensions.get('window').width,
-    height: 1,
-  },
-  root: {
-    display: 'flex',
-    width: Dimensions.get('window').width,
-    height: 'auto',
-    alignItems: 'center',
-  },
-
-  metadata: {
-    display: 'flex',
-    width: Dimensions.get('window').width,
-    alignItems: 'flex-start',
-    paddingHorizontal: 16,
-  },
-  content: {
-    textAlign: 'left',
-    color: 'green',
-    fontSize: 18,
-  },
-});
+import styles from '../../utils/Styles';
 
 const signAndSendTransaction = async (
   wallet: Keypair,
   request: SignAndSendTransactionsRequest,
   onFinish: () => void,
 ) => {
-  const valid = request.payloads.map(_ => true);
-  let signedTsxs = request.payloads.map((payload, index) => {
-    try {
-      return SignUseCase.signTransaction(new Uint8Array(payload), wallet);
-    } catch (e) {
-      console.log('sign error: ' + e);
-      valid[index] = false;
-      return new Uint8Array([]);
-    }
-  });
+  const [valid, signedTsxs] = getSignedPayloads(
+    request.__type,
+    wallet,
+    request.payloads,
+  );
 
   if (valid.includes(false)) {
     resolve(request, {
@@ -132,9 +93,9 @@ const SignAndSendTransaction = ({request}: SignAndSendTransactionProps) => {
           authScope,
           request.appIdentity?.identityUri,
         )) ?? false;
-
       setVerified(verified);
 
+      //soft decline, not great UX. Should tell the user that client was not verified
       if (!verified) {
         resolve(request, {
           failReason: MWARequestFailReason.UserDeclined,
@@ -147,10 +108,9 @@ const SignAndSendTransaction = ({request}: SignAndSendTransactionProps) => {
 
   return (
     <View style={styles.root}>
-      {loading && <Loader loadingText="Signing and sending..." />}
       <AppInfo
         iconSource={getIconFromIdentityUri(request.appIdentity)}
-        title="Authorize Dapp"
+        title="Sign and Send Transaction"
         appName={request.appIdentity?.identityName}
         uri={request.appIdentity?.identityUri}
         cluster={request.cluster}
@@ -177,6 +137,7 @@ const SignAndSendTransaction = ({request}: SignAndSendTransactionProps) => {
           resolve(request, {failReason: MWARequestFailReason.UserDeclined});
         }}
       />
+      {loading && <Loader />}
     </View>
   );
 };
