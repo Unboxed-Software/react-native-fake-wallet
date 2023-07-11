@@ -9,20 +9,25 @@ import {SafeAreaView, Text, View} from 'react-native';
 import {WalletProvider} from './components/provider/WalletProvider';
 import MainScreen from './screens/MainScreen';
 import 'react-native-get-random-values';
-import Loader from './components/Loader';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {DEVNET_ENDPOINT} from './utils/dapp';
+import {ConnectionProvider} from './components/provider/ConnectionProvider';
 
 function App(): JSX.Element {
   return (
-    <SafeAreaProvider>
-      <SafeAreaView>
-        <WalletProvider>
-          <View>
-            <MainScreen />
-          </View>
-        </WalletProvider>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <ConnectionProvider
+      endpoint={DEVNET_ENDPOINT}
+      config={{commitment: 'processed'}}>
+      <WalletProvider>
+        <SafeAreaProvider>
+          <SafeAreaView>
+            <View>
+              <MainScreen />
+            </View>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </WalletProvider>
+    </ConnectionProvider>
   );
 }
 

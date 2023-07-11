@@ -1,12 +1,14 @@
-import {StyleSheet, Text, View} from 'react-native';
+import {Dimensions, StyleSheet, Text, View} from 'react-native';
+import {useEffect} from 'react';
 
 type InfoCardProps = {
   label: string;
-  value: string;
+  value: JSX.Element;
 };
 
 const styles = StyleSheet.create({
   card: {
+    alignSelf: 'stretch',
     elevation: 16,
     backgroundColor: 'white',
     margin: 8,
@@ -21,20 +23,13 @@ const styles = StyleSheet.create({
     color: '#AA00FF',
     fontWeight: 'bold',
   },
-  value: {
-    backgroundColor: '#FAFAFA',
-    borderRadius: 4,
-    padding: 4,
-    margin: 4,
-    color: 'black',
-  },
 });
 const InfoCard = ({label, value}: InfoCardProps) => {
   return (
     <View style={styles.card}>
       <View style={{backgroundColor: '#EDE7F6', borderRadius: 8}}>
         <Text style={styles.addressLabel}>{label}</Text>
-        <Text style={styles.value}>{value}</Text>
+        {value}
       </View>
     </View>
   );

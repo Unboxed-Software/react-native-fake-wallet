@@ -34,6 +34,13 @@ const styles = StyleSheet.create({
     color: 'green',
     fontSize: 18,
   },
+  infoValue: {
+    backgroundColor: '#FAFAFA',
+    borderRadius: 4,
+    padding: 4,
+    margin: 4,
+    color: 'black',
+  },
 });
 
 export default styles;

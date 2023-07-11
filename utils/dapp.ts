@@ -1,6 +1,16 @@
-import {Keypair} from '@solana/web3.js';
+import {Keypair, LAMPORTS_PER_SOL, clusterApiUrl} from '@solana/web3.js';
 import SignUseCase from './SignUseCase';
 import {MWARequestType} from '../lib/mobile-wallet-adapter-walletlib/src';
+
+export const DEVNET_ENDPOINT = clusterApiUrl('devnet');
+
+export const AIRDROP_LAMPORTS = 1 * LAMPORTS_PER_SOL;
+
+export const convertLamportsToBalance = (lamports: number) => {
+  return new Intl.NumberFormat(undefined, {maximumFractionDigits: 1}).format(
+    (lamports || 0) / LAMPORTS_PER_SOL,
+  );
+};
 
 export const getIconFromIdentityUri = (appIdentity?: any) => {
   if (
